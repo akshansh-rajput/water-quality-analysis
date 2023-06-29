@@ -39,3 +39,8 @@ services:
     environment:
       - KAFKA_CLUSTERS_0_NAME=local
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=broker:29092
+      
+networks:
+  default:
+    external: true
+    name: waterQ
