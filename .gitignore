@@ -1,4 +1,10 @@
-deployment/notebook/.*
-deployment/notebook/__*
-deployment/*/*/.*
-deployment/*/*/__*
+airflow/dags/deployment/.*
+airflow/dags/deployment/__*
+airflow/dags/deployment/*/.*
+airflow/dags/deployment/*/__*
+postgres/*
+airflow/logs/*
+airflow/.*
+airflow/dags/.*
+airflow/dags/__*
+airflow/data/

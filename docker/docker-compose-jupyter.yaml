@@ -11,7 +11,7 @@ services:
       - "8090:4040"
     restart: always
     volumes:
-      - "../deployment/notebook:/home/jovyan/"
+      - "../airflow/:/home/jovyan/"
 
 networks:
   default:
