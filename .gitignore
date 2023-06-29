@@ -1,0 +1,4 @@
+deployment/notebook/.*
+deployment/notebook/__*
+deployment/*/*/.*
+deployment/*/*/__*

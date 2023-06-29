@@ -1,7 +1,10 @@
 version:  '3'
 services:
   jupyter-pyspark:
-    image: jupyter/pyspark-notebook:latest
+    # image: jupyter/pyspark-notebook:spark-3.2.1
+    build:
+      context: custom_image/jupyter-spark
+      dockerfile: Dockerfile
     container_name: jupyter-pyspark
     ports:
       - "8085:8888"
@@ -9,3 +12,8 @@ services:
     restart: always
     volumes:
       - "../deployment/notebook:/home/jovyan/"
+
+networks:
+  default:
+    external: true
+    name: waterQ
