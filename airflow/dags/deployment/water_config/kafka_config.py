@@ -1,2 +1,0 @@
-KAFKA_TOPIC_NAME = 'test_topic'
-KAFKA_BROKER_SERVER = 'broker:29092'

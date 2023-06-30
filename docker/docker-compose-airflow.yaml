@@ -18,23 +18,29 @@ services:
       retries: 5
     restart: always
 
-  airflow-init:
-    container_name: "airflow-init"
-    image: apache/airflow:2.4.2-python3.10
-    env_file: ./airflow.env
-    entrypoint: /bin/bash
-    command:
-      - -c
-      - airflow db check || echo "Hello World" && airflow db init && airflow users create --role Admin --username airflow --password airflow --email airflow@airflow.com --firstname airflow --lastname airflow
-    restart: on-failure
-    healthcheck:
-      test: "exit 0"
-    depends_on:
-      - "postgres"
+  # airflow-init:
+  #   container_name: "airflow-init"
+  #   # image: apache/airflow:2.4.2-python3.10
+  #   build:
+  #     context: custom_image/airflow
+  #     dockerfile: Dockerfile
+  #   env_file: ./airflow.env
+  #   entrypoint: /bin/bash
+  #   command:
+  #     - -c
+  #     - airflow db check || echo "Hello World" && airflow db init && airflow users create --role Admin --username airflow --password airflow --email airflow@airflow.com --firstname airflow --lastname airflow
+  #   restart: on-failure
+  #   healthcheck:
+  #     test: "exit 0"
+  #   depends_on:
+  #     - "postgres"
 
   airflow-webserver:
     container_name: "airflow-webserver"
-    image: apache/airflow:2.4.2-python3.10
+    # image: apache/airflow:2.4.2-python3.10
+    build:
+      context: custom_image/airflow
+      dockerfile: Dockerfile
     command: webserver
     ports:
       - 8095:8080
@@ -56,12 +62,15 @@ services:
       - ../airflow/dags:/opt/airflow/dags
       - ../airflow/logs:/opt/airflow/logs
       - ../airflow/plugins:/opt/airflow/plugins
-    depends_on:
-      airflow-init:
-        condition: service_completed_successfully
+    # depends_on:
+    #   airflow-init:
+    #     condition: service_completed_successfully
   airflow-scheduler:
     container_name: "airflow-scheduler"
-    image: apache/airflow:2.4.2-python3.10
+    # image: apache/airflow:2.4.2-python3.10
+    build:
+      context: custom_image/airflow
+      dockerfile: Dockerfile
     command: scheduler
     env_file: ./airflow.env
     healthcheck:
@@ -81,6 +90,25 @@ services:
       - ../airflow/plugins:/opt/airflow/plugins
     depends_on:
       - "airflow-webserver"
+  airflow-cli:
+    build:
+        context: custom_image/airflow
+        dockerfile: Dockerfile
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: False
+      AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS: False
+      AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: 60
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql://airflow:airflow@postgres:5432/airflow
+      AIRFLOW_CONN_METADATA_DB: postgresql://airflow:airflow@postgres:5432/airflow
+      AIRFLOW_VAR__METADATA_DB_SCHEMA: airflow
+      AIRFLOW__SCHEDULER__SCHEDULER_HEARTBEAT_SEC: 10do
+    profiles:
+      - debug
+    # Workaround for entrypoint issue. See: https://github.com/apache/airflow/issues/16252
+    command:
+      - bash
+      - -c
+      - airflow
 volumes:
   db:
   dags:
