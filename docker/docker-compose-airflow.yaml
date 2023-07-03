@@ -72,6 +72,8 @@ services:
       context: custom_image/airflow
       dockerfile: Dockerfile
     command: scheduler
+    ports:
+      - 8092:4040
     env_file: ./airflow.env
     healthcheck:
       test:

@@ -1,0 +1,32 @@
+dag_name: data_extractor
+need_kafka_topic: True
+kafka_partition_num: 8
+topic_name: 
+    - water_spatial_info
+    - water_quality_data
+kafka_server: "broker:29092"
+data_processor:
+    - source_location: "/opt/airflow/dags/input/data/Waterbase_v2021_1_S_WISE6_SpatialObject_DerivedData.csv"
+      name: spatial_feed
+      target_format: kafka
+      source_format: csv
+      source_options:
+          header: True
+      target_options:
+          topic: water_spatial_info
+          kafka.bootstrap.servers: "broker:29092"
+      pre_transformation:
+          - name: "filter_data"
+            params: "monitoringSiteIdentifier is not null"
+    - source_location: "/opt/airflow/dags/input/data/Waterbase_v2021_1_T_WISE6_DisaggregatedData.csv"
+      name: water_quality_data_feed
+      target_format: kafka
+      source_format: csv
+      source_options:
+          header: True
+      target_options:
+          topic: water_quality_data
+          kafka.bootstrap.servers: "broker:29092"
+task_orders:
+  spatial_feed: create_topic
+  water_quality_data_feed: create_topic

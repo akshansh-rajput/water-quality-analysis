@@ -9,4 +9,5 @@ airflow/dags/.*
 airflow/dags/__*
 airflow/dags/input/
 airflow/dags/output/
+airflow/dags/deployment/output/
 airflow/dags/spark-streaming-kafka-0-10_2.12-3.2.0.jar

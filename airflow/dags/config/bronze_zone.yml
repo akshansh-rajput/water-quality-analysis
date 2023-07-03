@@ -1,0 +1,32 @@
+dag_name: bronze_zone_pipeline
+need_kafka_topic: False
+kafka_server: "broker:29092"
+data_processor:
+    - name: spatial_raw_table
+      target_format: delta
+      source_format: kafka
+      schema_file: "/opt/airflow/dags/config/schemas/spatial_obj.json"
+      source_options:
+          subscribe: water_spatial_info
+          kafka.bootstrap.servers: "broker:29092"
+      target_location: "/opt/airflow/dags/output/raw/raw_spatial/"
+      pre_transformation:
+          - name: "filter_data"
+            params: "countryCode=='LT' or countryCode=='SE'"
+    # - feed1_source: "/opt/airflow/dags/input/data/Waterbase_v2021_1_S_WISE6_SpatialObject_DerivedData.csv"
+    #   name: SE_feed
+    #   target_format: kafka
+    #   data_type: csv
+    #   feed_options:
+    #       header: True
+    #   target_options:
+    #       topic: airflow_se
+    #       kafka.bootstrap.servers: "broker:29092"
+    #   pre_transformation:
+    #       - name: "filter_data"
+    #         condition: "monitoringSiteIdentifier is  null"
+    #       - name: "filter_data"
+    #         condition: "countryCode=='SE'"
+    #   post_transformation:
+    #       - name: "to_json"
+    #         condition: "value"
