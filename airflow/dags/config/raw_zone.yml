@@ -1,0 +1,32 @@
+dag_name: raw_zone_pipeline
+need_kafka_topic: False
+kafka_server: "broker:29092"
+data_processor:
+    - name: spatial_raw_table
+      target_format: parquet
+      source_format: kafka
+      schema_file: "/opt/airflow/dags/config/schemas/spatial_obj.json"
+      source_options:
+          subscribe: water_spatial_info
+          kafka.bootstrap.servers: "broker:29092"
+      target_location: "/opt/airflow/dags/output/raw/raw_spatial/"
+      target_options:
+          compression: snappy
+      # pre_transformation:
+      #     - name: "filter_data"
+      #       params: "countryCode=='LT' or countryCode=='SE'"
+    - name: water_quality_raw_table
+      target_format: parquet
+      source_format: kafka
+      schema_file: "/opt/airflow/dags/config/schemas/data.json"
+      source_options:
+          subscribe: water_quality_data
+          kafka.bootstrap.servers: "broker:29092"
+          minPartitions: 256
+      target_location: "/opt/airflow/dags/output/raw/raw_water_quality/"
+      target_options:
+          compression: snappy
+      # pre_transformation:
+      #     - name: "filter_data"
+      #       params: "countryCode=='LT' or countryCode=='SE'"
+  
