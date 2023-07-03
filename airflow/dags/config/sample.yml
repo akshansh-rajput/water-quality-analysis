@@ -1,0 +1,41 @@
+dag_name: sample_test
+need_kafka_topic: True
+topic_name: 
+    - airflow_lt
+    - airflow_se
+kafka_server: "broker:29092"
+data_processor:
+    - feed1_source: "/opt/airflow/dags/input/data/Waterbase_v2021_1_S_WISE6_SpatialObject_DerivedData.csv"
+      name: LT_feed
+      target_format: kafka
+      data_type: csv
+      feed_options:
+          header: True
+      target_options:
+          topic: airflow_lt
+          kafka.bootstrap.servers: "broker:29092"
+      pre_transformation:
+          - name: "filter_data"
+            condition: "monitoringSiteIdentifier is  null"
+          - name: "filter_data"
+            condition: "countryCode=='LT'"
+      post_transformation:
+          - name: "to_json"
+            condition: "value"
+    - feed1_source: "/opt/airflow/dags/input/data/Waterbase_v2021_1_S_WISE6_SpatialObject_DerivedData.csv"
+      name: SE_feed
+      target_format: kafka
+      data_type: csv
+      feed_options:
+          header: True
+      target_options:
+          topic: airflow_se
+          kafka.bootstrap.servers: "broker:29092"
+      pre_transformation:
+          - name: "filter_data"
+            condition: "monitoringSiteIdentifier is  null"
+          - name: "filter_data"
+            condition: "countryCode=='SE'"
+      post_transformation:
+          - name: "to_json"
+            condition: "value"
