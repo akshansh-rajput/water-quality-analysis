@@ -2,31 +2,61 @@ dag_name: bronze_zone_pipeline
 need_kafka_topic: False
 kafka_server: "broker:29092"
 data_processor:
-    - name: spatial_raw_table
-      target_format: delta
-      source_format: kafka
-      schema_file: "/opt/airflow/dags/config/schemas/spatial_obj.json"
-      source_options:
-          subscribe: water_spatial_info
-          kafka.bootstrap.servers: "broker:29092"
-      target_location: "/opt/airflow/dags/output/raw/raw_spatial/"
+    - name: filter_spatial_table
+      source_location: "/opt/airflow/dags/output/raw/raw_spatial/*.parquet"
+      target_format: parquet
+      source_format: parquet
+      # source_options:
+      #     subscribe: water_spatial_info
+      #     kafka.bootstrap.servers: "broker:29092"
+      target_location: "/opt/airflow/dags/output/raw/bronze_intrim_filter_spatial/"
+      target_options:
+          compression: snappy
       pre_transformation:
           - name: "filter_data"
             params: "countryCode=='LT' or countryCode=='SE'"
-    # - feed1_source: "/opt/airflow/dags/input/data/Waterbase_v2021_1_S_WISE6_SpatialObject_DerivedData.csv"
-    #   name: SE_feed
-    #   target_format: kafka
-    #   data_type: csv
-    #   feed_options:
-    #       header: True
-    #   target_options:
-    #       topic: airflow_se
-    #       kafka.bootstrap.servers: "broker:29092"
-    #   pre_transformation:
-    #       - name: "filter_data"
-    #         condition: "monitoringSiteIdentifier is  null"
-    #       - name: "filter_data"
-    #         condition: "countryCode=='SE'"
-    #   post_transformation:
-    #       - name: "to_json"
-    #         condition: "value"
+          - name: "selected_cols"
+            params: "countryCode,monitoringSiteIdentifier,monitoringSiteIdentifierScheme,rbdName,waterBodyName,lat,lon"
+    - name: lt_se_water_data
+      source_location: "/opt/airflow/dags/output/raw/raw_water_quality/*.parquet"
+      target_format: parquet
+      source_format: parquet
+      target_location: "/opt/airflow/dags/output/raw/bronze_intrim_agg_data/"
+      target_options:
+          compression: snappy
+      aggregation:
+        type: inner_join
+        condition: monitoringSiteIdentifier
+        need_sec_data: True
+        sec_data_location: "/opt/airflow/dags/output/raw/bronze_intrim_filter_spatial/*.parquet"
+        sec_data_format: parquet
+      pre_transformation:
+          - name: "remove_cols"
+            params: "UID,metadata_statements,metadata_observationStatus,metadata_statusCode,metadata_beginLifeSpanVersion,metadata_versionId,monitoringsiteidentifierscheme"
+      post_transformation:
+          - name: "filter_data"
+            params: "resultObservationStatus == 'A'"
+    - name: lt_data
+      source_location: "/opt/airflow/dags/output/raw/bronze_intrim_agg_data/*.parquet"
+      target_format: parquet
+      source_format: parquet
+      target_location: "/opt/airflow/dags/output/raw/bronze_lt_data/"
+      target_options:
+          compression: snappy
+      post_transformation:
+          - name: "filter_data"
+            params: "countryCode == 'LT'"
+    - name: se_data
+      source_location: "/opt/airflow/dags/output/raw/bronze_intrim_agg_data/*.parquet"
+      target_format: parquet
+      source_format: parquet
+      target_location: "/opt/airflow/dags/output/raw/bronze_se_data/"
+      target_options:
+          compression: snappy
+      post_transformation:
+          - name: "filter_data"
+            params: "countryCode == 'SE'"
+task_orders:
+  lt_se_water_data: filter_spatial_table
+  se_data: lt_se_water_data
+  lt_data: lt_se_water_data

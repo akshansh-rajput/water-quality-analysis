@@ -22,7 +22,7 @@ data_processor:
       source_options:
           subscribe: water_quality_data
           kafka.bootstrap.servers: "broker:29092"
-          minPartitions: 256
+          minPartitions: 512
       target_location: "/opt/airflow/dags/output/raw/raw_water_quality/"
       target_options:
           compression: snappy

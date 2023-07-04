@@ -3,7 +3,7 @@ from pyspark.sql.dataframe import StructType
 import json
 import os
 from deployment.data_handler.reader_writer import data_reader, data_writer
-from deployment.data_handler.transformations.transformation import filter_data, convert_to_json, remove_cols, selected_cols, extract_from_json, expr
+from deployment.data_handler.transformations.transformation import filter_data, convert_to_json, remove_cols, selected_cols, extract_from_json, expr, inner_join
 
 transformation_map = {
     'filter_data': filter_data,
@@ -66,6 +66,7 @@ def build_pipeline(config):
     source_format = config['source_format']
     reading_options = config.get('source_options', None)
     need_aggregation_data = config.get('req_secondary_data', False)
+    partitionby = config.get('partitionBy', None)
     #Reading main source data
     df = data_reader_modification(spark, source_format, reading_options, first_source_location, config)
     sec_data = None
@@ -75,17 +76,24 @@ def build_pipeline(config):
     #Apply transformation on data before aggregation if required
     if config.get('pre_transformation', None):
         transformations_before = config.get('pre_transformation', None)
-        apply_transformation(df, transformations_before)
+        df = apply_transformation(df, transformations_before)
+
     #Apply aggregation if required
-    if config.get('aggregation'):
-        pass
+    if config.get('aggregation', None):
+        agg_config = config.get('aggregation', None)
+        if agg_config['type'] == 'inner_join':
+            sec_data_format = agg_config['sec_data_format']
+            sec_data_location = agg_config.get('sec_data_location', None)
+            sec_data_options = agg_config.get('sec_data_options', None)
+            sec_data = data_reader_modification(spark, sec_data_format, sec_data_options, sec_data_location, agg_config)
+            df = inner_join(df, sec_data, agg_config['condition'])
     #Apply final transformation on data if required
     if config.get('post_transformation'):
         transformations_after = config.get('post_transformation', None)
-        apply_transformation(df, transformations_after)
+        df = apply_transformation(df, transformations_after)
 
     #Sink final data
     if target_format == "kafka":
         df = df.transform(convert_to_json, 'value')
-    data_writer(df, target_format, target_options, target)
+    data_writer(df, target_format, partitionby, target_options, target)
     

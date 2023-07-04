@@ -5,6 +5,10 @@ from pyspark.sql.functions import to_json, struct
 from deployment.data_handler.pipeline_builder import build_pipeline
 @task.python
 def pipeline_builder(config):
+    """
+    Airflow python task to build ETL or EL pipeline using config file
+    """
+    print("Starting Pipeline")
     build_pipeline(config)
     # import os
     # os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.0 pyspark-shell'

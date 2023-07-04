@@ -1,3 +1,4 @@
+
 def data_reader(spark, data_format, options = None, source_location = None):
     df_reader = spark.read.format(data_format)
     if options:
@@ -7,8 +8,11 @@ def data_reader(spark, data_format, options = None, source_location = None):
     else:
         return df_reader.load()
     
-def data_writer(df, data_format, options = None, target = None):
+def data_writer(df, data_format, partitionBy = None, options = None, target = None):
     writer_df = df.write.format(data_format)
+    if partitionBy:
+        partition_cols = partitionBy.split(',')
+        writer_df = writer_df.partitionBy(*partition_cols)
     if options:
         writer_df = writer_df.options(**options)
     if target:
