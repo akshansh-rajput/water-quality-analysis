@@ -19,3 +19,6 @@ def expr(df, operation):
 
 def extract_from_json(df, schema):
     return df.select(from_json(col("value"), schema).alias("plateform_inter_data")).select("plateform_inter_data.*")
+
+def inner_join(left_df, right_df, col):
+    return left_df.join(right_df, col)

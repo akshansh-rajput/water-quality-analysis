@@ -74,6 +74,7 @@ services:
     command: scheduler
     ports:
       - 8092:4040
+      - 8093:18080
     env_file: ./airflow.env
     healthcheck:
       test:

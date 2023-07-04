@@ -1,0 +1,53 @@
+dag_name: refine_zone_pipeline
+need_kafka_topic: False
+kafka_server: "broker:29092"
+data_processor:
+    - name: LT_Nitrate_rate
+      source_location: "/opt/airflow/dags/output/raw/bronze_lt_data/*.parquet"
+      target_format: parquet
+      source_format: parquet
+      target_location: "/opt/airflow/dags/output/raw/refine_lt_nitrate/"
+      target_options:
+          compression: snappy
+      pre_transformation:
+          - name: "filter_data"
+            params: "observedPropertyDeterminandLabel == 'Nitrate'"
+      partitionBy: "phenomenonTimeSamplingDate"
+    - name: LT_Nitrate_GW
+      source_location: "/opt/airflow/dags/output/raw/refine_lt_nitrate/"
+      target_format: parquet
+      source_format: parquet
+      target_location: "/opt/airflow/dags/output/raw/refine_lt_nitrate_gw/"
+      target_options:
+          compression: snappy
+      pre_transformation:
+          - name: "filter_data"
+            params: "parameterWaterBodyCategory == 'GW'"
+      partitionBy: "phenomenonTimeSamplingDate"
+    - name: LT_Nitrate_lake
+      source_location: "/opt/airflow/dags/output/raw/refine_lt_nitrate/"
+      target_format: parquet
+      source_format: parquet
+      target_location: "/opt/airflow/dags/output/raw/refine_lt_nitrate_lw/"
+      target_options:
+          compression: snappy
+      pre_transformation:
+          - name: "filter_data"
+            params: "parameterWaterBodyCategory == 'LW'"
+      partitionBy: "phenomenonTimeSamplingDate"
+    - name: LT_Nitrate_river
+      source_location: "/opt/airflow/dags/output/raw/refine_lt_nitrate/"
+      target_format: parquet
+      source_format: parquet
+      target_location: "/opt/airflow/dags/output/raw/refine_lt_nitrate_rw/"
+      target_options:
+          compression: snappy
+      pre_transformation:
+          - name: "filter_data"
+            params: "parameterWaterBodyCategory == 'RW'"
+      partitionBy: "phenomenonTimeSamplingDate"
+    
+task_orders:
+  LT_Nitrate_GW: LT_Nitrate_rate
+  LT_Nitrate_lake: LT_Nitrate_rate
+  LT_Nitrate_river: LT_Nitrate_rate

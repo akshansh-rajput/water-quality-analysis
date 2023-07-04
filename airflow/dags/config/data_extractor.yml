@@ -27,6 +27,9 @@ data_processor:
       target_options:
           topic: water_quality_data
           kafka.bootstrap.servers: "broker:29092"
+      pre_transformation:
+          - name: "filter_data"
+            params: "monitoringSiteIdentifier like 'LT%' or monitoringSiteIdentifier like 'SE%'"
 task_orders:
   spatial_feed: create_topic
   water_quality_data_feed: create_topic
