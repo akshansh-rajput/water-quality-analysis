@@ -1,24 +1,48 @@
 # water-quality-analysis
-# Steps to spin up docker container
-## Kafka
- To spin up kafka, run below command.
+# Architure for data processing
+![Alt text](./resource/blue_print.jpeg)
+This service read dags configuration i.e. how many task should be there, type of task, their dependency and working etc are define in config file. Whole services are broken down into smaller module so that they can be used in any order and any number of times to full fill the required need.
 
- Go inside docker dir
+## Current Pipeline flow
+![Alt text](./resource/current_flow.jpeg)
+
+# Data Zone
+![Alt text](./resource/data_zone.png) 
+
+# Steps to spin up docker container
+## All services( airflow, jupyter, kafka)
+ To create all services, run below command.
+
 ```
-docker compose -f docker-compose-kafka.yaml up -d
+make  create-all-services
 ```
-To destroy kafka container
+To destroy all container
 ```
-docker compose -f docker-compose-kafka.yaml 
+make destroy-all-services
 ```
-## jupyter notebook with pyspark
- To spin up kafka, run below command
- 
- Go inside docker dir
+to stop all services
 ```
-docker compose -f docker-compose-jupyter.yaml up -d
+make stop-all-services
 ```
-To destroy kafka container
+to start all services
 ```
-docker compose -f docker-compose-jupyter.yaml 
+make start-all-services
+```
+
+to setup airflow env 
+```
+make setup-airflow
+```
+
+to open services on UI:
+<li> kafka: localhost:8080
+<li> jupyter: localhost:8085
+<li> jupyter container spark ui: localhost:8090
+<li> airflow ui: localhost:8095
+
+## To run unit test cases
+ To unit test script, run below command.
+
+```
+make  run-unit-tests
 ```
