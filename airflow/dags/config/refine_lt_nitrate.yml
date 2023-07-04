@@ -57,6 +57,10 @@ data_processor:
       pre_transformation:
           - name: "filter_data"
             params: "observedPropertyDeterminandCode == 'EEA_3164-01-0'"
+          - name: "custom_expr"
+            params:
+              col_name: phenomenonTimeSamplingDate
+              expr: "to_date(cast(phenomenonTimeSamplingDate as string),'yyyyMMdd')"
       partitionBy: "phenomenonTimeSamplingDate"
     - name: LT_Chlorophyll_data
       source_location: "/opt/airflow/dags/output/raw/bronze_lt_data/*.parquet"
