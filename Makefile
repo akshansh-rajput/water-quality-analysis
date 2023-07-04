@@ -1,3 +1,12 @@
+ifeq ($(OS), Windows_NT)
+	PYTHON ?= python
+	PIP ?= venv\Scripts\pip.exe
+else
+	PYTHON ?= $(shell which python3)
+	PIP ?= pip3
+endif
+
+
 create-all-services: create-kafka-containers create-pyspark-jupyter-containers create-pyspark-airflow-containers
 
 destory-all-services: destory-kafka-containers destory-pyspark-jupyter-containers destory-pyspark-airflow-containers
@@ -62,3 +71,7 @@ setup-airflow:
 	cd docker && \
 	./airflow.sh db init && \
 	./airflow.sh airflow users create --role Admin --username airflow --password airflow --email airflow@airflow.com --firstname airflow --lastname airflow
+
+run-unit-tests:
+	 $(PIP) install -r airflow/test/reqs.txt && \
+	 $(PYTHON) -m pytest airflow/test/test_*.py -v

@@ -3,7 +3,7 @@ from pyspark.sql.dataframe import StructType
 import json
 import os
 from deployment.data_handler.reader_writer import data_reader, data_writer
-from deployment.data_handler.transformations.transformation import filter_data, convert_to_json, remove_cols, selected_cols, extract_from_json, expr, inner_join
+from deployment.data_handler.transformations.transformation import filter_data, convert_to_json, remove_cols, selected_cols, extract_from_json, select_expr, inner_join, custom_expr
 
 transformation_map = {
     'filter_data': filter_data,
@@ -11,7 +11,8 @@ transformation_map = {
     'remove_cols': remove_cols,
     'selected_cols': selected_cols,
     'extract_from_json': extract_from_json,
-    'expr': expr
+    'expr': select_expr,
+    'custom_expr': custom_expr
 }
 
 def get_schema(path):
@@ -44,7 +45,7 @@ def data_reader_modification(spark, source_format, reading_options, first_source
     if source_format == 'kafka':
         schema_file = config.get('schema_file')
         schema = get_schema(schema_file)
-        df = df.transform(expr, 'CAST(value as String)')
+        df = df.transform(select_expr, 'CAST(value as String)')
         df = df.transform(extract_from_json, schema)
     return df
 
