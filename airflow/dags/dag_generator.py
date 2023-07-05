@@ -6,6 +6,7 @@ from airflow.providers.papermill.operators.papermill import PapermillOperator
 import yaml
 import os
 
+#Check config file and process them in seq
 for filename in os.listdir('/opt/airflow/dags/config/'):
     if filename.endswith('.yml'):
         with open(f'/opt/airflow/dags/config/{filename}') as fi:

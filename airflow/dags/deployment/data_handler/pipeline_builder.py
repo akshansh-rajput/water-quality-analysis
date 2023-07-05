@@ -16,12 +16,24 @@ transformation_map = {
 }
 
 def get_schema(path):
+    """
+    Helper method to get schema from file
+    Args:
+        path : schema file location
+    Return:
+        schema: Spark structtype
+    """
     with open(path) as sch_file:
         json_schema = json.load(sch_file)
         schema = StructType.fromJson(json_schema)
         return schema
 
 def get_spark_session():
+    """
+    Spark session builder.
+    Return:
+        SparkSession
+    """
     #Adding kafka-spark package at runtime
     os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.0,io.delta:delta-core_2.12:2.0.0 pyspark-shell'
     spark = SparkSession \
@@ -34,6 +46,14 @@ def get_spark_session():
     return spark
     
 def apply_transformation(df, transformations):
+    """
+    Helper method which call actual transformation method which are mentioned in config file
+    Args:
+        df              : DataFrame
+        transformations : List of transformation methos to apply on Dataframe
+    Return:
+        DataFrame
+    """
     for transformation in transformations:
             trans_name = transformation['name']
             extra_params = transformation['params']
@@ -41,6 +61,18 @@ def apply_transformation(df, transformations):
     return df
 
 def data_reader_modification(spark, source_format, reading_options, first_source_location, config):
+    """
+    Helper method which call reader method to get dataframe and modify dataframe if source is kafka i.e.
+    Extract actual data columns from value column.
+    Args:
+        spark                   : Spark session
+        source_format           : format of source data
+        reading_options         : option to use while reading data
+        first_source_location   : source location
+        config                  : job config, to get schema information in case kafka is source format
+    Return:
+        Dataframe
+    """
     df = data_reader(spark, source_format, reading_options, first_source_location)
     if source_format == 'kafka':
         schema_file = config.get('schema_file')
